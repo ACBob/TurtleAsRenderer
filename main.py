@@ -24,7 +24,7 @@ class TileEntity(object):
             self.NextGravityGametime = GameTime+self.GravitySteps
 
     def GetCollide(self):
-        return (self.position[0]+self.CollisionBounds[0],self.position[1]+self.CollisionBounds[1]) #For testing collisions!
+        return ((self.position[0]+self.CollisionBounds[0],self.position[1]+self.CollisionBounds[0]),(self.position[0]+self.CollisionBounds[1],self.position[1]+self.CollisionBounds[1])) #For testing collisions!
 
     def render(self):
         self.GravitySimulation()
@@ -52,20 +52,29 @@ class TileEntity(object):
         #self.position = (self.position[0] + 32,self.position[1])
         self.Movement(3)
 
-    def Movement(self,direction): #Direction is an integer, 0 = "UP" 1 + "DOWN" 2 = "LEFT" 3 = "RIGHT"
+    def TestCollision(self):
         if self.Collision:
             for i in RenderList:
                 if not i.Collision:
                     continue #If it doesn't have collision, what are we doing?!
-                CollideBounds = i.GetCollide()
-                TestCollideBounds = self.GetCollide()
-                if TestCollideBounds[0] >= CollideBounds[0] and TestCollideBounds[1] <= CollideBounds[1]:
-                    print("Collide")
-                    break #Well, we've collided. Can't move.
+                TestCollideBounds = i.GetCollide()
+                CollideBounds = self.GetCollide()
+                #print(CollideBounds,TestCollideBounds)
+                if CollideBounds[0][0] >= TestCollideBounds[0][0] and CollideBounds[0][1] >= TestCollideBounds[0][1] and CollideBounds[1][0] <= TestCollideBounds[1][0] and CollideBounds[1][1] <= TestCollideBounds[1][1]:
+                    #print("Collide")
+                    return True
+        return False
+
+    def Movement(self,direction): #Direction is an integer, 0 = "UP" 1 + "DOWN" 2 = "LEFT" 3 = "RIGHT"
+        
         if direction < 2:
             self.position = (self.position[0],self.position[1]+((32,-32)[direction]))
+            if self.TestCollision():
+                self.position = (self.position[0],self.position[1]+((-32,32)[direction]))
         else:
             self.position = (self.position[0]+((-32,32)[direction-2]),self.position[1])
+            if self.TestCollision():
+                self.position = (self.position[0],self.position[1]+((32,-32)[direction]))
         
 
 class Player(TileEntity):
