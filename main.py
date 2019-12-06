@@ -2,14 +2,18 @@ import turtle
 
 class TileEntity(object):
 
-    def __init__(self,position,gravity=False):
+    def __init__(self,position,gravity=False,collisions=True):
         self.turt = turtle.Turtle()
         self.position = position
         self.turt.hideturtle()
 
         self.Gravity = gravity
-        self.GravitySteps = 60 #Delay between gravity simulations
+        self.GravitySteps = 120 #Delay between gravity simulations
         self.NextGravityGametime = GameTime+self.GravitySteps
+
+        self.Collision = collisions
+        self.CollisionBounds = (0,32) #Var 1 = Top left on both axis, Var 2 = Bottom Right on both Axis.
+        #In this case, it's 0,0 to the shape, and 32,32 from origin (0,0)
 
         self.turt.color("Green","Lime Green")
         self.turt.speed("fastest")
@@ -18,6 +22,9 @@ class TileEntity(object):
         if self.Gravity and self.NextGravityGametime <= GameTime:
             self.Down()
             self.NextGravityGametime = GameTime+self.GravitySteps
+
+    def GetCollide(self):
+        return (self.position[0]+self.CollisionBounds[0],self.position[1]+self.CollisionBounds[1]) #For testing collisions!
 
     def render(self):
         self.GravitySimulation()
@@ -33,14 +40,32 @@ class TileEntity(object):
         self.turt.end_fill()
 
     def Up(self):
-        self.position = (self.position[0],self.position[1] + 32)
+        #self.position = (self.position[0],self.position[1] + 32)
+        self.Movement(0)
     def Down(self):
-        self.position = (self.position[0],self.position[1] - 32)
+        #self.position = (self.position[0],self.position[1] - 32)
+        self.Movement(1)
     def Left(self):
-        self.position = (self.position[0] - 32,self.position[1])
+        #self.position = (self.position[0] - 32,self.position[1])
+        self.Movement(2)
     def Right(self):
-        self.position = (self.position[0] + 32,self.position[1])
+        #self.position = (self.position[0] + 32,self.position[1])
+        self.Movement(3)
 
+    def Movement(self,direction): #Direction is an integer, 0 = "UP" 1 + "DOWN" 2 = "LEFT" 3 = "RIGHT"
+        if self.Collision:
+            for i in RenderList:
+                if not i.Collision:
+                    continue #If it doesn't have collision, what are we doing?!
+                CollideBounds = i.GetCollide()
+                TestCollideBounds = self.GetCollide()
+                if TestCollideBounds[0] >= CollideBounds[0] and TestCollideBounds[1] <= CollideBounds[1]:
+                    print("Collide")
+                    break #Well, we've collided. Can't move.
+        if direction < 2:
+            self.position = (self.position[0],self.position[1]+((32,-32)[direction]))
+        else:
+            self.position = (self.position[0]+((-32,32)[direction-2]),self.position[1])
         
 
 class Player(TileEntity):
@@ -65,13 +90,14 @@ Screen.bgcolor("Black")
 global GameTime #Turtle doesn't have the luxury of built-in time knowledge.
 GameTime = 0
 
+global RenderList
+RenderList = []
+
 player = Player((0,64))
 print(player)
 
-renderlist = []
-
 for i in range(10):
-    renderlist.append(TileEntity((32*i,0)))
+    RenderList.append(TileEntity((32*i,0)))
 
 Screen.listen()
 
@@ -79,7 +105,7 @@ Screen.listen()
 
 while True:
     turtle.tracer(0,0) #Hide Changes
-    for i in renderlist: i.render()
+    for i in RenderList: i.render()
     player.render()
     turtle.update() #Push Changes
     GameTime+=1
