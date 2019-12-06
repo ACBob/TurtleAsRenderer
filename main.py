@@ -24,7 +24,7 @@ class TileEntity(object):
     def GravitySimulation(self):
         if self.Gravity and self.NextGravityGametime <= GameTime.value:
             self.Down()
-            self.NextGravityGametime = GameTime.value+self.GravitySteps
+            self.ResetFall()
 
     def GetCollide(self):
         return ((self.position[0]+self.CollisionBounds[0],self.position[1]+self.CollisionBounds[0]),(self.position[0]+self.CollisionBounds[1],self.position[1]+self.CollisionBounds[1])) #For testing collisions!
@@ -59,28 +59,41 @@ class TileEntity(object):
     def TestCollision(self):
         if self.Collision:
             for i in RenderList:
-                if not i.Collision:
-                    continue #If it doesn't have collision, what are we doing?!
+                if not i.Collision or i == self: #If it's not got collision, or it is us, ignore.
+                    continue
                 TestCollideBounds = i.GetCollide()
                 CollideBounds = self.GetCollide()
                 #print(CollideBounds,TestCollideBounds)
                 if CollideBounds[0][0] >= TestCollideBounds[0][0] and CollideBounds[0][1] >= TestCollideBounds[0][1] and CollideBounds[1][0] <= TestCollideBounds[1][0] and CollideBounds[1][1] <= TestCollideBounds[1][1]:
                     #print("Collide")
-                    return True
+                    return i
         return False
+
+    def ResetFall(self):
+        self.NextGravityGametime = GameTime.value+self.GravitySteps
 
     def Movement(self,direction): #Direction is an integer, 0 = "UP" 1 + "DOWN" 2 = "LEFT" 3 = "RIGHT"
         #print(direction)
         if direction < 2:
             self.position = (self.position[0],self.position[1]+((32,-32)[direction]))
-            if self.TestCollision():
+            collider = self.TestCollision()
+            if collider:
+                if collider.Gravity:
+                    collider.Movement(direction)
+                    collider.ResetFall()
+                    self.ResetFall()
                 self.position = (self.position[0],self.position[1]+((-32,32)[direction]))
-                self.NextGravityGametime = GameTime.value+self.GravitySteps
+                self.ResetFall()
         else:
             self.position = (self.position[0]+((-32,32)[direction-2]),self.position[1])
-            if self.TestCollision():
+            collider = self.TestCollision()
+            if collider:
+                if collider.Gravity:
+                    collider.Movement(direction)
+                    collider.ResetFall()
+                    self.ResetFall()
                 self.position = (self.position[0],self.position[1]+((32,-32)[direction-2]))
-                self.NextGravityGametime = GameTime.value+self.GravitySteps
+                self.ResetFall()
         
 
 class Player(TileEntity):
@@ -132,7 +145,9 @@ player = Player((0,64))
 print(player)
 
 for i in range(10):
-    RenderList.append(TileEntity((32*i,0)))
+    RenderList.append(TileEntity((32*i,0),False,True))
+
+RenderList.append(TileEntity((64,32),True,True,"Falling Block"))
 
 Screen.listen()
 
