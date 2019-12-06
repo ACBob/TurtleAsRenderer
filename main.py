@@ -16,7 +16,7 @@ class TileEntity(object):
         self.CollisionBounds = (0,32) #Var 1 = Top left on both axis, Var 2 = Bottom Right on both Axis.
         #In this case, it's 0,0 to the shape, and 32,32 from origin (0,0)
 
-        self.turt.color("Green","Lime Green")
+        self.turt.color("#FFFFFF","#222222")
         self.turt.speed("fastest")
 
     def GravitySimulation(self):
@@ -88,7 +88,7 @@ class Player(TileEntity):
         Screen.onkey(self.Left,"a")
         Screen.onkey(self.Right,"d")
 
-        self.turt.color("Red","Pink")
+        self.turt.color("#FFEEEE","#442222")
 
 class Clock(object):
 
