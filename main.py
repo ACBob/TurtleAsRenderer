@@ -3,7 +3,7 @@ import time
 
 class TileEntity(object):
 
-    def __init__(self,position,gravity=False,collisions=True):
+    def __init__(self,position,gravity=False,collisions=True,tooltext=""):
         self.turt = turtle.Turtle()
         self.position = position
         self.turt.hideturtle()
@@ -18,6 +18,8 @@ class TileEntity(object):
 
         self.turt.color("#FFFFFF","#222222")
         self.turt.speed("fastest")
+
+        self.ToolText = tooltext
 
     def GravitySimulation(self):
         if self.Gravity and self.NextGravityGametime <= GameTime.value:
@@ -39,6 +41,7 @@ class TileEntity(object):
             self.turt.right(90)
 
         self.turt.end_fill()
+        if self.ToolText: self.turt.write(self.ToolText)
 
     def Up(self):
         #self.position = (self.position[0],self.position[1] + 32)
@@ -72,10 +75,12 @@ class TileEntity(object):
             self.position = (self.position[0],self.position[1]+((32,-32)[direction]))
             if self.TestCollision():
                 self.position = (self.position[0],self.position[1]+((-32,32)[direction]))
+                self.NextGravityGametime = GameTime.value+self.GravitySteps
         else:
             self.position = (self.position[0]+((-32,32)[direction-2]),self.position[1])
             if self.TestCollision():
                 self.position = (self.position[0],self.position[1]+((32,-32)[direction-2]))
+                self.NextGravityGametime = GameTime.value+self.GravitySteps
         
 
 class Player(TileEntity):
