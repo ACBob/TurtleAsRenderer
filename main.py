@@ -87,25 +87,25 @@ class TileEntity(object):
             self.position = (self.position[0],self.position[1]+((32,-32)[direction]))
             collider = self.TestCollision()
             if collider:
-                if collider.Gravity and self.CanPush:
-                    collider.Movement(direction)
-                    collider.ResetFall()
-                    self.ResetFall()
+                if collider.Gravity and self.CanPush and collider.Movement(direction):
+                        collider.ResetFall()
+                        self.ResetFall()
                 else:
                     self.position = (self.position[0],self.position[1]+((-32,32)[direction]))
                     self.ResetFall()
+                    return False
         else:
             self.position = (self.position[0]+((-32,32)[direction-2]),self.position[1])
             collider = self.TestCollision()
             if collider:
-                if collider.Gravity and self.CanPush:
-                    collider.Movement(direction)
-                    collider.ResetFall()
-                    self.ResetFall()
+                if collider.Gravity and self.CanPush and collider.Movement(direction):
+                        collider.ResetFall()
+                        self.ResetFall()
                 else:
-                    self.position = (self.position[0],self.position[1]+((32,-32)[direction-2]))
+                    self.position = (self.position[0],self.position[1]+((-32,32)[direction]))
                     self.ResetFall()
-        
+                    return False
+        return True
 
 class Player(TileEntity):
 
@@ -157,6 +157,7 @@ print(player)
 
 for i in range(10):
     RenderList.append(TileEntity((32*i,0),False,True))
+    RenderList.append(TileEntity((0,32*i),False,True))
 
 RenderList.append(TileEntity((64,32),True,False))
 
